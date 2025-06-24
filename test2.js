@@ -16,6 +16,8 @@ function parsePuzzle(puzzleString) {
     //print 2d array
     return grid;
 }
+
+// Fixed slot finding with boundary checks
 function findSlots(grid) {
     const slots = [];
     const rows = grid.length;
@@ -58,7 +60,6 @@ function findSlots(grid) {
     }
     return slots;
 }
-
 
 function canPlace(grid, word, slot) {
   const { row, col, dir, length } = slot;
@@ -105,13 +106,9 @@ function removeWord(grid, changed) {
   }
 }
 
-
-//******************************************************startt sojving */
-
 function deepCloneGrid(grid) {
   return grid.map(row => row.slice());
 }
-
 
 function solve(grid, slots, words, used, index, solutions) {
   // Base case: all slots are filled
@@ -139,7 +136,6 @@ function solve(grid, slots, words, used, index, solutions) {
   }
 }
 
-// Replace all 1 and 2 with 0
 function cleanGrid(grid) {
   for (let r = 0; r < grid.length; r++) {
     for (let c = 0; c < grid[0].length; c++) {
@@ -150,51 +146,59 @@ function cleanGrid(grid) {
   }
 }
 
+// Fixed solver with proper starting cell validation
 function crosswordSolver(puzzleString, words) {
-  // Step 1: Validate inputs
+  // Validate inputs
   if (typeof puzzleString !== 'string' || !Array.isArray(words)) {
     console.log('Error');
     return;
   }
 
-  // Step 2: Clean and parse the puzzle into grid
+  // Parse puzzle
   const grid = parsePuzzle(puzzleString.trim());
   if (!grid) {
     console.log('Error');
     return;
   }
 
-  
-  // Step 3: Find all word slots
-  const slots = findSlots(grid);
-
+  // Count expected words from starting cells
+  let expectedWordCount = 0;
   for (let r = 0; r < grid.length; r++) {
     for (let c = 0; c < grid[0].length; c++) {
-      if (grid[r][c] >= '1' && grid[r][c] <= '9') {
-        grid[r][c] = '0';
+      if (grid[r][c] === '1') {
+        expectedWordCount++;
+      } else if (grid[r][c] === '2') {
+        expectedWordCount += 2;
       }
     }
   }
 
-  if (slots.length !== words.length) {
-      console.log('Error');
-      return;
-    }
+  // Find slots
+  const slots = findSlots(grid);
+  
+  // Clean grid
+  cleanGrid(grid);
 
-  // Step 4: Check for duplicate words
+  // Validate slot count and expected words
+  if (slots.length !== words.length || expectedWordCount !== words.length) {
+    console.log('Error');
+    return;
+  }
+
+  // Check for duplicate words
   const uniqueWords = new Set(words);
   if (uniqueWords.size !== words.length) {
     console.log('Error');
     return;
   }
 
-  // Step 5: Prepare for solving
+  // Prepare for solving
   const used = Array(words.length).fill(false);
   const solutions = [];
 
   solve(grid, slots, words, used, 0, solutions);
 
-  // Step 6: Final result check
+  // Output result
   if (solutions.length === 1) {
     const finalGrid = solutions[0];
     const result = finalGrid.map(row => row.join("")).join("\n");
@@ -204,9 +208,93 @@ function crosswordSolver(puzzleString, words) {
   }
 }
 
+// const puzzle = '2001\n0..0\n1000\n0..0'
+// const words = ['casa', 'alan', 'ciao', 'anta']
 
-//************************it should display 'Error' */
-//Test mismatch between number of input words and puzzle starting cells
-const puzzle = '2001\n0..0\n2000\n0..0'
-const words = ['casa', 'alan', 'ciao', 'anta']
-crosswordSolver(puzzle, words);
+// const puzzle = `
+// ...1...........
+// ..1000001000...
+// ...0....0......
+// .1......0...1..
+// .0....100000000
+// 100000..0...0..
+// .0.....1001000.
+// .0.1....0.0....
+// .10000000.0....
+// .0.0......0....
+// .0.0.....100...
+// ...0......0....
+// ..........0....`
+// const words = [
+//   'sun',
+//   'sunglasses',
+//   'suncream',
+//   'swimming',
+//   'bikini',
+//   'beach',
+//   'icecream',
+//   'tan',
+//   'deckchair',
+//   'sand',
+//   'seaside',
+//   'sandals',
+// ]
+
+// const puzzle = `..1.1..1...
+// 10000..1000
+// ..0.0..0...
+// ..1000000..
+// ..0.0..0...
+// 1000..10000
+// ..0.1..0...
+// ....0..0...
+// ..100000...
+// ....0..0...
+// ....0......`
+// const words = [
+//   'popcorn',
+//   'fruit',
+//   'flour',
+//   'chicken',
+//   'eggs',
+//   'vegetables',
+//   'pasta',
+//   'pork',
+//   'steak',
+//   'cheese',
+// ]
+
+// const puzzle = `...1...........
+// ..1000001000...
+// ...0....0......
+// .1......0...1..
+// .0....100000000
+// 100000..0...0..
+// .0.....1001000.
+// .0.1....0.0....
+// .10000000.0....
+// .0.0......0....
+// .0.0.....100...
+// ...0......0....
+// ..........0....`
+// const words = [
+//   'sun',
+//   'sunglasses',
+//   'suncream',
+//   'swimming',
+//   'bikini',
+//   'beach',
+//   'icecream',
+//   'tan',
+//   'deckchair',
+//   'sand',
+//   'seaside',
+//   'sandals',
+// ].reverse()
+
+const puzzle = '2001\n0..0\n1000\n0..0'
+const words = ['aaab', 'aaac', 'aaad', 'aaae']
+
+
+
+console.log(crosswordSolver(puzzle, words))
